@@ -1,0 +1,73 @@
+<html>
+	<head>
+		<title>API Docs</title>
+		<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,400' rel='stylesheet' type='text/css'>
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				color: #333;
+				display: table;
+				font-weight: 100;
+				font-family: 'Source Sans Pro';
+			}
+			.container {
+				text-align: center;
+        padding: 10px;
+			}
+			table {
+color: #333;
+width: 640px;
+border-collapse:
+collapse; border-spacing: 0;
+}
+
+td, th {
+border: 1px solid transparent; /* No more visible border */
+height: 30px;
+transition: all 0.3s;  /* Simple transition for hover effect */
+}
+
+th {
+background: #DFDFDF;  /* Darken header a bit */
+font-weight: bold;
+}
+
+td {
+background: #FAFAFA;
+text-align: left;
+}
+
+td.action {
+background: #FAFAFA;
+text-align: center;
+}
+
+/* Cells in even rows (2,4,6...) are one color */
+tr:nth-child(even) td { background: #F1F1F1; }
+
+/* Cells in odd rows (1,3,5...) are another (excludes header cells)  */
+tr:nth-child(odd) td { background: #FEFEFE; }
+
+tr td:hover { background: #666; color: #FFF; } /* Hover cell effect! */
+		</style>
+	</head>
+	<body>
+		<div class="container">
+				<h1>API Endpoint Documentation</h1>
+        <table align="center" style="margin: 0px auto;">
+          <tr>
+            <th>Request Type</th>
+            <th>Endpoint Path</th>
+          </tr>
+          {{ range $endpoint := .Endpoints }}
+          <tr>
+            <td class="action">{{ $endpoint.Type }}</td>
+            <td>{{ $endpoint.Path }}</td>
+          </tr>
+        {{end}}
+      </table>
+		</div>
+	</body>
+</html>
