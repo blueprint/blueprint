@@ -1,28 +1,39 @@
 // Package render writes HTTP responses in different formats.
-package render
+package blueprint
 
 import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"io"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
 )
 
-// Binary writes a raw slice of bytes to a http.ResponseWriter.
-func Binary(w http.ResponseWriter, code int, p []byte) (int, error) {
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.WriteHeader(code)
-	return w.Write(p)
+type SerializerFunc func(io.Writer, interface{}) (int, error)
+
+func (s SerializerFunc) Serialize(w io.Writer, v interface{}) (int, error) {
+	return s(w, v)
 }
 
+type Serializer interface {
+	Serialize(io.Writer, interface{}) (int, error)
+}
+
+// Binary writes a raw slice of bytes to a http.ResponseWriter.
+// func Binary(w http.ResponseWriter, code int, p []byte) (int, error) {
+// 	w.Header().Set("Content-Type", "application/octet-stream")
+// 	w.WriteHeader(code)
+// 	return w.Write(p)
+// }
+
 // JSON writes an object to a http.ResponseWriter as JSON.
-func JSON(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int, error) {
+func JSON(w http.ResponseWriter, code int, pretty bool, v interface{}) (int, error) {
 	bytes := []byte{}
 	var err error
 
-	if prettyprint {
+	if pretty {
 		bytes, err = json.MarshalIndent(v, "", "  ")
 	} else {
 		bytes, err = json.Marshal(v)
@@ -40,7 +51,7 @@ func JSON(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int
 		return n, errors.New(err2.Error() + " " + err.Error())
 	}
 
-	if prettyprint {
+	if pretty {
 		n, err := w.Write([]byte("\n"))
 		num += n
 		if err != nil {
@@ -53,11 +64,11 @@ func JSON(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int
 
 // JSONP wraps a callback function around an object and writes the result to a
 // http.ResponseWriter as JSONP.
-func JSONP(w http.ResponseWriter, code int, prettyprint bool, callback string, v interface{}) (int, error) {
+func JSONP(w http.ResponseWriter, code int, pretty bool, callback string, v interface{}) (int, error) {
 	bytes := []byte{}
 	var err error
 
-	if prettyprint {
+	if pretty {
 		bytes, err = json.MarshalIndent(v, "", "  ")
 	} else {
 		bytes, err = json.Marshal(v)
@@ -102,7 +113,7 @@ func JSONP(w http.ResponseWriter, code int, prettyprint bool, callback string, v
 		return n, err
 	}
 
-	if prettyprint {
+	if pretty {
 		n, err := w.Write([]byte("\n"))
 		num += n
 		if err != nil {
@@ -114,11 +125,11 @@ func JSONP(w http.ResponseWriter, code int, prettyprint bool, callback string, v
 }
 
 // XML writes an object to a http.ResponseWriter as XML.
-func XML(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int, error) {
+func XML(w http.ResponseWriter, code int, pretty bool, v interface{}) (int, error) {
 	bytes := []byte{}
 	var err error
 
-	if prettyprint {
+	if pretty {
 		bytes, err = xml.MarshalIndent(v, "", "  ")
 	} else {
 		bytes, err = xml.Marshal(v)
@@ -138,7 +149,7 @@ func XML(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int,
 		return n, err
 	}
 
-	if prettyprint {
+	if pretty {
 		n, err := w.Write([]byte("\n"))
 		num += n
 		if err != nil {
@@ -151,7 +162,7 @@ func XML(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int,
 	n, err := w.Write(bytes)
 	num += n
 
-	if prettyprint {
+	if pretty {
 		n, err := w.Write([]byte("\n"))
 		num += n
 		if err != nil {
@@ -168,7 +179,7 @@ func XML(w http.ResponseWriter, code int, prettyprint bool, v interface{}) (int,
 		return n, err
 	}
 
-	if prettyprint {
+	if pretty {
 		n, err := w.Write([]byte("\n"))
 		num += n
 		if err != nil {
